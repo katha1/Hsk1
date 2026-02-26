@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSK 1 Flash Cards</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #f5f0e8;
+    --red: #c0392b;
+    --gold: #b8860b;
+    --muted: #8a7a6a;
+    --shadow: rgba(0,0,0,0.15);
+    --green: #27ae60;
+    --orange: #e67e22;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px 48px;
+    background-image: 
+      radial-gradient(ellipse at 20% 20%, rgba(184,134,11,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(192,57,43,0.05) 0%, transparent 60%);
+  }
+  h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  /* STATS */
+  .stats-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+    font-size: 0.8rem;
+    font-family: 'Crimson Pro', serif;
+    letter-spacing: 0.05em;
+  }
+  .stat-pill.s0 { border-color: rgba(192,57,43,0.4); color: var(--red); background: rgba(192,57,43,0.07); }
+  .stat-pill.s1 { border-color: rgba(230,126,34,0.4); color: var(--orange); background: rgba(230,126,34,0.07); }
+  .stat-pill.s2 { border-color: rgba(39,174,96,0.4); color: var(--green); background: rgba(39,174,96,0.07); }
+  .stat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .s0 .stat-dot { background: var(--red); }
+  .s1 .stat-dot { background: var(--orange); }
+  .s2 .stat-dot { background: var(--green); }
+
+  /* PROGRESS */
+  .progress-bar-outer {
+    width: min(460px, 100%);
+    height: 3px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 2px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    transition: width 0.4s ease;
+  }
+  .progress-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+
+  /* CARD */
+  .scene {
+    width: min(420px, 100%);
+    height: 290px;
+    perspective: 1000px;
+    cursor: pointer;
+    margin-bottom: 18px;
+    user-select: none;
+  }
+  .card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px;
+    box-shadow: 
+      0 2px 4px var(--shadow),
+      0 8px 24px rgba(0,0,0,0.08),
+      inset 0 0 0 1px rgba(184,134,11,0.2);
+  }
+  .card-front {
+    background: #fffdf7;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b8860b' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .card-back {
+    background: var(--ink);
+    transform: rotateY(180deg);
+  }
+
+  /* Status dot on front */
+  .status-dot {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+  }
+  .sd-none { background: rgba(0,0,0,0.12); }
+  .sd-0 { background: var(--red); }
+  .sd-1 { background: var(--orange); }
+  .sd-2 { background: var(--green); }
+
+  .hanzi {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(68px, 17vw, 104px);
+    line-height: 1;
+    color: var(--ink);
+    text-shadow: 2px 3px 0 rgba(0,0,0,0.05);
+  }
+  .hint {
+    margin-top: 16px;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .pinyin {
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    color: var(--gold);
+    font-weight: 300;
+    margin-bottom: 10px;
+  }
+  .meaning {
+    font-size: clamp(1.05rem, 3vw, 1.4rem);
+    color: var(--paper);
+    text-align: center;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+  .hanzi-small {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.9rem;
+    color: rgba(245,240,232,0.22);
+    margin-top: 14px;
+  }
+
+  /* MEMORY RATING BUTTONS */
+  .memory-btns {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease 0.25s;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .memory-btns.visible { opacity: 1; pointer-events: all; }
+
+  .mbtn {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.83rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    border: 1.5px solid;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mbtn-no  { background: rgba(192,57,43,0.07);  border-color: var(--red);    color: var(--red);    }
+  .mbtn-mid { background: rgba(230,126,34,0.07); border-color: var(--orange); color: var(--orange); }
+  .mbtn-yes { background: rgba(39,174,96,0.07);  border-color: var(--green);  color: var(--green);  }
+  .mbtn-no:hover  { background: var(--red);    color: white; }
+  .mbtn-mid:hover { background: var(--orange); color: white; }
+  .mbtn-yes:hover { background: var(--green);  color: white; }
+
+  /* NAV */
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 22px;
+    border: 1px solid;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.17s ease;
+  }
+  .btn-nav {
+    background: transparent;
+    border-color: rgba(0,0,0,0.2);
+    color: var(--muted);
+  }
+  .btn-nav:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-smart {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+    font-size: 0.78rem;
+  }
+  .btn-smart:hover { background: #b8860b; border-color: #b8860b; }
+  .btn-reset {
+    background: transparent;
+    border-color: rgba(192,57,43,0.3);
+    color: rgba(192,57,43,0.55);
+    font-size: 0.72rem;
+    padding: 7px 14px;
+  }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  .category-tag {
+    margin-top: 16px;
+    font-size: 0.67rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.55;
+  }
+
+  .kbd-hint {
+    margin-top: 10px;
+    font-size: 0.65rem;
+    color: var(--muted);
+    opacity: 0.45;
+    letter-spacing: 0.1em;
+  }
+
+  @media (max-width: 480px) {
+    .scene { height: 255px; }
+    .mbtn { font-size: 0.78rem; padding: 8px 14px; }
+  }
+
+  .card-enter { animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(10px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(50px);
+    background: var(--ink); color: var(--paper);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.88rem; letter-spacing: 0.06em;
+    padding: 9px 20px; border-radius: 3px;
+    opacity: 0; transition: all 0.3s ease;
+    pointer-events: none; white-space: nowrap;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<h1>HSK 1 · 汉字词汇</h1>
+
+<div class="stats-row">
+  <div class="stat-pill s0"><div class="stat-dot"></div><span id="cnt0">0</span>&nbsp;No recuerdo</div>
+  <div class="stat-pill s1"><div class="stat-dot"></div><span id="cnt1">0</span>&nbsp;A medias</div>
+  <div class="stat-pill s2"><div class="stat-dot"></div><span id="cnt2">0</span>&nbsp;Lo sé</div>
+</div>
+
+<div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar"></div></div>
+<div class="progress-label" id="progressLabel"></div>
+
+<div class="scene" id="scene" onclick="handleCardClick()">
+  <div class="card" id="card">
+    <div class="card-face card-front">
+      <div class="status-dot sd-none" id="statusDot"></div>
+      <div class="hanzi" id="frontChar"></div>
+      <div class="hint">Tocá para revelar</div>
+    </div>
+    <div class="card-face card-back">
+      <div class="pinyin" id="backPinyin"></div>
+      <div class="meaning" id="backMeaning"></div>
+      <div class="hanzi-small" id="backChar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Rating buttons — appear after flip -->
+<div class="memory-btns" id="memoryBtns">
+  <button class="mbtn mbtn-no"  onclick="rate(0)">✗&nbsp;No recuerdo</button>
+  <button class="mbtn mbtn-mid" onclick="rate(1)">~&nbsp;A medias</button>
+  <button class="mbtn mbtn-yes" onclick="rate(2)">✓&nbsp;Lo sé</button>
+</div>
+
+<div class="controls">
+  <button class="btn-nav" onclick="prevCard()">← Anterior</button>
+  <button class="btn-smart" onclick="smartShuffle()">⇌ Mezcla inteligente</button>
+  <button class="btn-nav" onclick="nextCard()">Siguiente →</button>
+</div>
+
+<div style="margin-top:12px;">
+  <button class="btn-reset" onclick="resetProgress()">↺ Borrar progreso</button>
+</div>
+
+<div class="category-tag" id="categoryTag"></div>
+<div class="kbd-hint">Teclado: Espacio = revelar/siguiente · 1/2/3 = calificar</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── VOCABULARIO HSK 1 ────────────────────────────────────────
+const hsk1Raw = [
+  {char:"我",pinyin:"wǒ",meaning:"yo",cat:"pronombre"},
+  {char:"你",pinyin:"nǐ",meaning:"tú",cat:"pronombre"},
+  {char:"他",pinyin:"tā",meaning:"él",cat:"pronombre"},
+  {char:"她",pinyin:"tā",meaning:"ella",cat:"pronombre"},
+  {char:"我们",pinyin:"wǒmen",meaning:"nosotros",cat:"pronombre"},
+  {char:"你们",pinyin:"nǐmen",meaning:"ustedes",cat:"pronombre"},
+  {char:"他们",pinyin:"tāmen",meaning:"ellos / ellas",cat:"pronombre"},
+  {char:"这",pinyin:"zhè",meaning:"este / esto",cat:"pronombre"},
+  {char:"那",pinyin:"nà",meaning:"ese / aquello",cat:"pronombre"},
+  {char:"哪",pinyin:"nǎ",meaning:"¿cuál? / ¿dónde?",cat:"pronombre"},
+  {char:"什么",pinyin:"shénme",meaning:"¿qué?",cat:"pronombre"},
+  {char:"谁",pinyin:"shéi",meaning:"¿quién?",cat:"pronombre"},
+  {char:"怎么",pinyin:"zěnme",meaning:"¿cómo?",cat:"pronombre"},
+  {char:"多少",pinyin:"duōshao",meaning:"¿cuánto?",cat:"pronombre"},
+  {char:"几",pinyin:"jǐ",meaning:"¿cuántos? (número pequeño)",cat:"pronombre"},
+  {char:"你好",pinyin:"nǐ hǎo",meaning:"hola",cat:"saludo"},
+  {char:"谢谢",pinyin:"xièxie",meaning:"gracias",cat:"saludo"},
+  {char:"不客气",pinyin:"bú kèqi",meaning:"de nada",cat:"saludo"},
+  {char:"对不起",pinyin:"duìbuqǐ",meaning:"lo siento / disculpe",cat:"saludo"},
+  {char:"没关系",pinyin:"méi guānxi",meaning:"no importa",cat:"saludo"},
+  {char:"再见",pinyin:"zàijiàn",meaning:"adiós",cat:"saludo"},
+  {char:"请",pinyin:"qǐng",meaning:"por favor / invitar",cat:"saludo"},
+  {char:"是",pinyin:"shì",meaning:"ser / es",cat:"verbo"},
+  {char:"有",pinyin:"yǒu",meaning:"tener / haber",cat:"verbo"},
+  {char:"没有",pinyin:"méiyǒu",meaning:"no tener / no hay",cat:"verbo"},
+  {char:"在",pinyin:"zài",meaning:"estar en / en (lugar)",cat:"verbo"},
+  {char:"来",pinyin:"lái",meaning:"venir",cat:"verbo"},
+  {char:"去",pinyin:"qù",meaning:"ir",cat:"verbo"},
+  {char:"回",pinyin:"huí",meaning:"regresar / volver",cat:"verbo"},
+  {char:"吃",pinyin:"chī",meaning:"comer",cat:"verbo"},
+  {char:"喝",pinyin:"hē",meaning:"beber",cat:"verbo"},
+  {char:"买",pinyin:"mǎi",meaning:"comprar",cat:"verbo"},
+  {char:"看",pinyin:"kàn",meaning:"ver / mirar",cat:"verbo"},
+  {char:"听",pinyin:"tīng",meaning:"escuchar",cat:"verbo"},
+  {char:"说",pinyin:"shuō",meaning:"hablar / decir",cat:"verbo"},
+  {char:"读",pinyin:"dú",meaning:"leer",cat:"verbo"},
+  {char:"写",pinyin:"xiě",meaning:"escribir",cat:"verbo"},
+  {char:"睡觉",pinyin:"shuìjiào",meaning:"dormir",cat:"verbo"},
+  {char:"坐",pinyin:"zuò",meaning:"sentarse / viajar en",cat:"verbo"},
+  {char:"开",pinyin:"kāi",meaning:"abrir / conducir",cat:"verbo"},
+  {char:"叫",pinyin:"jiào",meaning:"llamarse / llamar",cat:"verbo"},
+  {char:"做",pinyin:"zuò",meaning:"hacer",cat:"verbo"},
+  {char:"打电话",pinyin:"dǎ diànhuà",meaning:"llamar por teléfono",cat:"verbo"},
+  {char:"爱",pinyin:"ài",meaning:"amar / querer",cat:"verbo"},
+  {char:"想",pinyin:"xiǎng",meaning:"querer / pensar / extrañar",cat:"verbo"},
+  {char:"喜欢",pinyin:"xǐhuān",meaning:"gustar / querer",cat:"verbo"},
+  {char:"认识",pinyin:"rènshi",meaning:"conocer (a alguien)",cat:"verbo"},
+  {char:"学习",pinyin:"xuéxí",meaning:"estudiar / aprender",cat:"verbo"},
+  {char:"工作",pinyin:"gōngzuò",meaning:"trabajar / trabajo",cat:"verbo"},
+  {char:"住",pinyin:"zhù",meaning:"vivir / habitar",cat:"verbo"},
+  {char:"人",pinyin:"rén",meaning:"persona / gente",cat:"sustantivo"},
+  {char:"朋友",pinyin:"péngyou",meaning:"amigo/a",cat:"sustantivo"},
+  {char:"同学",pinyin:"tóngxué",meaning:"compañero de clase",cat:"sustantivo"},
+  {char:"老师",pinyin:"lǎoshī",meaning:"maestro/a",cat:"sustantivo"},
+  {char:"学生",pinyin:"xuésheng",meaning:"estudiante",cat:"sustantivo"},
+  {char:"医生",pinyin:"yīshēng",meaning:"médico/a",cat:"sustantivo"},
+  {char:"爸爸",pinyin:"bàba",meaning:"papá",cat:"familia"},
+  {char:"妈妈",pinyin:"māma",meaning:"mamá",cat:"familia"},
+  {char:"儿子",pinyin:"érzi",meaning:"hijo",cat:"familia"},
+  {char:"女儿",pinyin:"nǚér",meaning:"hija",cat:"familia"},
+  {char:"米饭",pinyin:"mǐfàn",meaning:"arroz cocido",cat:"comida"},
+  {char:"面条",pinyin:"miàntiáo",meaning:"fideos",cat:"comida"},
+  {char:"菜",pinyin:"cài",meaning:"verdura / plato",cat:"comida"},
+  {char:"水果",pinyin:"shuǐguǒ",meaning:"fruta",cat:"comida"},
+  {char:"苹果",pinyin:"píngguǒ",meaning:"manzana",cat:"comida"},
+  {char:"水",pinyin:"shuǐ",meaning:"agua",cat:"comida"},
+  {char:"茶",pinyin:"chá",meaning:"té",cat:"comida"},
+  {char:"牛奶",pinyin:"niúnǎi",meaning:"leche",cat:"comida"},
+  {char:"饭店",pinyin:"fàndiàn",meaning:"restaurante / hotel",cat:"lugar"},
+  {char:"年",pinyin:"nián",meaning:"año",cat:"tiempo"},
+  {char:"月",pinyin:"yuè",meaning:"mes / luna",cat:"tiempo"},
+  {char:"日",pinyin:"rì",meaning:"día / sol",cat:"tiempo"},
+  {char:"号",pinyin:"hào",meaning:"número / día del mes",cat:"tiempo"},
+  {char:"星期",pinyin:"xīngqī",meaning:"semana",cat:"tiempo"},
+  {char:"今天",pinyin:"jīntiān",meaning:"hoy",cat:"tiempo"},
+  {char:"明天",pinyin:"míngtiān",meaning:"mañana",cat:"tiempo"},
+  {char:"昨天",pinyin:"zuótiān",meaning:"ayer",cat:"tiempo"},
+  {char:"现在",pinyin:"xiànzài",meaning:"ahora",cat:"tiempo"},
+  {char:"时候",pinyin:"shíhou",meaning:"momento / cuando",cat:"tiempo"},
+  {char:"上午",pinyin:"shàngwǔ",meaning:"mañana (AM)",cat:"tiempo"},
+  {char:"下午",pinyin:"xiàwǔ",meaning:"tarde (PM)",cat:"tiempo"},
+  {char:"中午",pinyin:"zhōngwǔ",meaning:"mediodía",cat:"tiempo"},
+  {char:"一",pinyin:"yī",meaning:"uno (1)",cat:"número"},
+  {char:"二",pinyin:"èr",meaning:"dos (2)",cat:"número"},
+  {char:"三",pinyin:"sān",meaning:"tres (3)",cat:"número"},
+  {char:"四",pinyin:"sì",meaning:"cuatro (4)",cat:"número"},
+  {char:"五",pinyin:"wǔ",meaning:"cinco (5)",cat:"número"},
+  {char:"六",pinyin:"liù",meaning:"seis (6)",cat:"número"},
+  {char:"七",pinyin:"qī",meaning:"siete (7)",cat:"número"},
+  {char:"八",pinyin:"bā",meaning:"ocho (8)",cat:"número"},
+  {char:"九",pinyin:"jiǔ",meaning:"nueve (9)",cat:"número"},
+  {char:"十",pinyin:"shí",meaning:"diez (10)",cat:"número"},
+  {char:"百",pinyin:"bǎi",meaning:"cien (100)",cat:"número"},
+  {char:"千",pinyin:"qiān",meaning:"mil (1000)",cat:"número"},
+  {char:"零",pinyin:"líng",meaning:"cero (0)",cat:"número"},
+  {char:"两",pinyin:"liǎng",meaning:"dos (con medidor)",cat:"número"},
+  {char:"中国",pinyin:"Zhōngguó",meaning:"China",cat:"lugar"},
+  {char:"北京",pinyin:"Běijīng",meaning:"Pekín",cat:"lugar"},
+  {char:"学校",pinyin:"xuéxiào",meaning:"escuela",cat:"lugar"},
+  {char:"医院",pinyin:"yīyuàn",meaning:"hospital",cat:"lugar"},
+  {char:"商店",pinyin:"shāngdiàn",meaning:"tienda",cat:"lugar"},
+  {char:"家",pinyin:"jiā",meaning:"casa / hogar / familia",cat:"lugar"},
+  {char:"里",pinyin:"lǐ",meaning:"dentro / adentro",cat:"lugar"},
+  {char:"前面",pinyin:"qiánmiàn",meaning:"adelante / frente",cat:"lugar"},
+  {char:"后面",pinyin:"hòumiàn",meaning:"detrás / atrás",cat:"lugar"},
+  {char:"上面",pinyin:"shàngmiàn",meaning:"arriba / encima",cat:"lugar"},
+  {char:"下面",pinyin:"xiàmiàn",meaning:"abajo / debajo",cat:"lugar"},
+  {char:"出租车",pinyin:"chūzūchē",meaning:"taxi",cat:"transporte"},
+  {char:"飞机",pinyin:"fēijī",meaning:"avión",cat:"transporte"},
+  {char:"火车",pinyin:"huǒchē",meaning:"tren",cat:"transporte"},
+  {char:"书",pinyin:"shū",meaning:"libro",cat:"objeto"},
+  {char:"电脑",pinyin:"diànnǎo",meaning:"computadora",cat:"objeto"},
+  {char:"手机",pinyin:"shǒujī",meaning:"celular",cat:"objeto"},
+  {char:"电视",pinyin:"diànshì",meaning:"televisión",cat:"objeto"},
+  {char:"钱",pinyin:"qián",meaning:"dinero",cat:"objeto"},
+  {char:"桌子",pinyin:"zhuōzi",meaning:"mesa",cat:"objeto"},
+  {char:"椅子",pinyin:"yǐzi",meaning:"silla",cat:"objeto"},
+  {char:"杯子",pinyin:"bēizi",meaning:"vaso / taza",cat:"objeto"},
+  {char:"好",pinyin:"hǎo",meaning:"bueno / bien",cat:"adjetivo"},
+  {char:"大",pinyin:"dà",meaning:"grande",cat:"adjetivo"},
+  {char:"小",pinyin:"xiǎo",meaning:"pequeño",cat:"adjetivo"},
+  {char:"多",pinyin:"duō",meaning:"mucho / muchos",cat:"adjetivo"},
+  {char:"少",pinyin:"shǎo",meaning:"poco / pocos",cat:"adjetivo"},
+  {char:"冷",pinyin:"lěng",meaning:"frío",cat:"adjetivo"},
+  {char:"热",pinyin:"rè",meaning:"caliente / calor",cat:"adjetivo"},
+  {char:"高兴",pinyin:"gāoxìng",meaning:"contento / alegre",cat:"adjetivo"},
+  {char:"漂亮",pinyin:"piàoliang",meaning:"bonito/a / guapo/a",cat:"adjetivo"},
+  {char:"太",pinyin:"tài",meaning:"demasiado / muy",cat:"adverbio"},
+  {char:"很",pinyin:"hěn",meaning:"muy",cat:"adverbio"},
+  {char:"都",pinyin:"dōu",meaning:"todos / ambos",cat:"adverbio"},
+  {char:"也",pinyin:"yě",meaning:"también",cat:"adverbio"},
+  {char:"不",pinyin:"bù",meaning:"no (negación)",cat:"adverbio"},
+  {char:"没",pinyin:"méi",meaning:"no (acciones/cantidad)",cat:"adverbio"},
+  {char:"个",pinyin:"gè",meaning:"medidor general",cat:"medidor"},
+  {char:"些",pinyin:"xiē",meaning:"algunos / un poco de",cat:"partícula"},
+  {char:"的",pinyin:"de",meaning:"partícula posesiva / modificadora",cat:"partícula"},
+  {char:"了",pinyin:"le",meaning:"partícula (acción completa)",cat:"partícula"},
+  {char:"吗",pinyin:"ma",meaning:"partícula interrogativa",cat:"partícula"},
+  {char:"呢",pinyin:"ne",meaning:"partícula ¿y...?",cat:"partícula"},
+  {char:"和",pinyin:"hé",meaning:"y / con (personas)",cat:"conjunción"},
+  {char:"天气",pinyin:"tiānqì",meaning:"clima / tiempo",cat:"clima"},
+  {char:"雨",pinyin:"yǔ",meaning:"lluvia",cat:"clima"},
+  {char:"雪",pinyin:"xuě",meaning:"nieve",cat:"clima"},
+  {char:"眼睛",pinyin:"yǎnjīng",meaning:"ojos",cat:"cuerpo"},
+  {char:"耳朵",pinyin:"ěrduo",meaning:"orejas",cat:"cuerpo"},
+];
+
+// Deduplicate
+const seen = new Set();
+const vocab = hsk1Raw.filter(w => {
+  const k = w.char+w.pinyin;
+  if(seen.has(k)) return false;
+  seen.add(k); return true;
+});
+
+// ── STORAGE ──────────────────────────────────────────────────
+const STORE_KEY = 'hsk1_progress_v2';
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveProgress(p) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(p)); } catch(e) {}
+}
+let progress = loadProgress();
+
+function getScore(w) { return progress[w.char+w.pinyin]; }
+function setScore(w, val) {
+  progress[w.char+w.pinyin] = val;
+  saveProgress(progress);
+}
+
+// ── SMART SHUFFLE ────────────────────────────────────────────
+// Groups: unknown → no → mid → known
+// Interleaves 1 "known" every 4 "weak" cards so you don't forget them
+function smartShuffle() {
+  const unknown=[], no=[], mid=[], known=[];
+  vocab.forEach(w => {
+    const s = getScore(w);
+    if(s===undefined) unknown.push(w);
+    else if(s===0) no.push(w);
+    else if(s===1) mid.push(w);
+    else known.push(w);
+  });
+  [unknown, no, mid, known].forEach(g => shuffle(g));
+
+  const weak = [...no, ...unknown, ...mid];
+  deck = [];
+  let ki = 0;
+  weak.forEach((w, i) => {
+    deck.push(w);
+    if((i+1)%4===0 && ki<known.length) deck.push(known[ki++]);
+  });
+  while(ki < known.length) deck.push(known[ki++]);
+
+  index = 0;
+  updateCard();
+  const nLabeled = no.length+mid.length+known.length;
+  showToast(`🧠 Primero: ${no.length} que no recordás, ${mid.length} a medias, ${unknown.length} sin calificar`);
+}
+
+function shuffle(arr) {
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+}
+
+// ── STATE ────────────────────────────────────────────────────
+let deck = [...vocab];
+let index = 0;
+let flipped = false;
+
+// ── RENDER ───────────────────────────────────────────────────
+function updateCard() {
+  const w = deck[index];
+
+  document.getElementById('frontChar').textContent = w.char;
+  document.getElementById('backPinyin').textContent = w.pinyin;
+  document.getElementById('backMeaning').textContent = w.meaning;
+  document.getElementById('backChar').textContent = w.char;
+  document.getElementById('categoryTag').textContent = w.cat;
+
+  // Status dot color
+  const dot = document.getElementById('statusDot');
+  const s = getScore(w);
+  dot.className = 'status-dot ' + (s===undefined ? 'sd-none' : 'sd-'+s);
+
+  // Progress bar
+  document.getElementById('progressBar').style.width = ((index+1)/deck.length*100)+'%';
+  document.getElementById('progressLabel').textContent = `${index+1} / ${deck.length}`;
+
+  // Animate card
+  const card = document.getElementById('card');
+  card.classList.remove('flipped');
+  card.classList.add('card-enter');
+  card.addEventListener('animationend', ()=>card.classList.remove('card-enter'), {once:true});
+
+  flipped = false;
+  document.getElementById('memoryBtns').classList.remove('visible');
+  updateStats();
+}
+
+function updateStats() {
+  let c0=0,c1=0,c2=0;
+  vocab.forEach(w=>{
+    const s=getScore(w);
+    if(s===0)c0++; else if(s===1)c1++; else if(s===2)c2++;
+  });
+  document.getElementById('cnt0').textContent=c0;
+  document.getElementById('cnt1').textContent=c1;
+  document.getElementById('cnt2').textContent=c2;
+}
+
+function handleCardClick() {
+  if(!flipped) {
+    const card = document.getElementById('card');
+    card.classList.add('flipped');
+    flipped = true;
+    document.getElementById('memoryBtns').classList.add('visible');
+  }
+}
+
+function rate(val) {
+  const w = deck[index];
+  setScore(w, val);
+
+  // Update dot immediately
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot sd-'+val;
+  updateStats();
+
+  const msgs = [
+    '✗ Sin problema, seguirá apareciendo más seguido',
+    '~ Casi! Lo verás con frecuencia',
+    '✓ ¡Excelente! Lo verás de vez en cuando para repasar'
+  ];
+  showToast(msgs[val]);
+
+  setTimeout(()=>nextCard(), 380);
+}
+
+function nextCard() {
+  document.getElementById('memoryBtns').classList.remove('visible');
+  index=(index+1)%deck.length;
+  updateCard();
+}
+
+function prevCard() {
+  document.getElementById('memoryBtns').classList.remove('visible');
+  index=(index-1+deck.length)%deck.length;
+  updateCard();
+}
+
+function resetProgress() {
+  if(!confirm('¿Borrar todo el progreso guardado?')) return;
+  progress={};
+  saveProgress(progress);
+  updateCard();
+  showToast('Progreso borrado. ¡A empezar de nuevo! 🌱');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e=>{
+  if(e.key===' '||e.key==='ArrowRight'){
+    e.preventDefault();
+    if(!flipped) handleCardClick(); else nextCard();
+  }
+  if(e.key==='ArrowLeft') prevCard();
+  if(e.key==='1') rate(0);
+  if(e.key==='2') rate(1);
+  if(e.key==='3') rate(2);
+});
+
+// Init
+updateCard();
+</script>
+</body>
+</html>
